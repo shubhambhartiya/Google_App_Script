@@ -1,0 +1,56 @@
+function checkReminder() {
+	var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+	SpreadsheetApp.setActiveSheet(spreadsheet.getSheets()[0]);
+	var sheet = spreadsheet.getActiveSheet();
+	// figure out what the last row is
+	var lastRow = sheet.getLastRow();
+	 
+	// the rows are indexed starting at 1, and the first row
+	// is the headers, so start with row 2
+	var startRow = 2;
+	var numColumns = sheet.getLastColumn();
+	// grab column ordered
+	var ordered = sheet.getRange( 2, 8, lastRow-startRow+1, 1 );
+	var numRows = ordered.getNumRows();
+	var ordered_column = ordered.getValues();
+	 
+	// Now, grab the min_level_column column
+	min_level = sheet.getRange( 2, 9, lastRow-startRow+1, 1);
+	var min_level_column = min_level.getValues();
+	var data_to_export = [];
+	var msg = "";
+   	
+	// Loop over the days left values
+	for (var i = 0; i <= numRows-1; i++) {
+		var ordered_cell = ordered_column[i][0];
+		var min_level_cell = min_level_column[i][0];
+		Logger.log(ordered_cell);
+		if(ordered_cell <= min_level_cell) {
+		  var row_data = sheet.getRange(i+1, 1, 1, numColumns);
+		  var row_data_value = row_data.getValues()[0];
+		  Logger.log(row_data_value);
+          data_to_export.push(row_data_value);
+		}
+		if (i==numRows-1) {
+			for (var i = 0; i <= data_to_export.length; i++) {
+				msg = msg + "\n\n" + data_to_export[i];
+				Logger.log(msg);
+			}
+		}        
+	}
+	// or seee the sheet is created or not
+	var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    var yourNewSheet = activeSpreadsheet.getSheetByName("Targets Missed");
+
+    if (yourNewSheet != null) {
+        activeSpreadsheet.deleteSheet(yourNewSheet);
+    }
+    yourNewSheet = activeSpreadsheet.insertSheet();
+    yourNewSheet.setName("Targets Missed");
+    var targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Targets Missed");
+    targetSheet.getRange(1, 1, data_to_export.length, numColumns).setValues(data_to_export);
+
+    MailApp.sendEmail("bhartiya.shubham08@gmail.com,shubhamiitpowai@gmail.com",
+	        "Targets Missed", msg);
+   
+}
